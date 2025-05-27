@@ -6,5 +6,5 @@
 Bandaid for tweening with more control in ROBLOX.
 
 ```bash
-rojo build -o "btwin.rbxm"
+rojo build -o "../btwin.rbxm"
 ```

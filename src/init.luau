@@ -245,6 +245,8 @@ do
                   self.Delta = math.clamp(self.Delta, 0, self.Duration)
                   self.Alpha = self.Delta / self.Duration
                   for variable, goal in self.Goals do
+                        -- TODO@FEATURE Make it detect if it is a compound type (UDim2)
+                        -- so you can change only the Y Scale for example
                         if typeof(goal) == TYP_TABLE then
                               -- TODO@FEATURE Make it go inside tables aswell!
                               continue
@@ -259,10 +261,13 @@ do
                   -- When reps = 0 it doesn't begin
                   -- When reps > 0 and reverses = true it doesn't count the
                   -- reversion as the same cycle
-                  if self.Delta >= self.Duration or (self.Reversing and self.Delta <= 0) then
+                  if (self.Speed >= 0 and
+                        self.Delta >= self.Duration or (self.Reversing and self.Delta <= 0))
+                  or (self.Speed < 0 and
+                        self.Delta <= 0 or (self.Reversing and self.Delta >= self.Duration )) then
                         if self.Repetitions == 0 and ((self.Reverses and self.Reversing) or not self.Reverses) then
                               self.State = STATES_COMPLETED
-                        elseif self.Repetitions > 0 then
+                        elseif self.Repetitions > 0 and (self.Reverses and self.Reversing) then
                               self.Repetitions -= 1
                         end
                         if self.Reverses then
@@ -294,7 +299,13 @@ do
                   coroutine.close(self.Routine)
                   self.Routine = nil
             end
-            self.Delta = 0
+            -- Check if speed is negative
+            -- if it is, go to the maximum
+            if self.Speed >= 0 then
+                  self.Delta = 0
+            else
+                  self.Delta = self.Duration
+            end
             self.State = STATES_BEGIN
             self.Routine = task.spawn(self._onTick, self)
             return self.Routine
